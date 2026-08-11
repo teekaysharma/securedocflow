@@ -1,0 +1,32 @@
+.DS_Store
+.svn
+._*
+~$*
+.*.swp
+.idea
+.phplint-cache
+Thumbs.db
+/nbproject
+config.php
+application/configs/docker-configs/
+**/*.tpl.php
+.phpunit.result.cache
+.env
+.env.backup.*
+test-env.php
+phpunit.xml
+build/
+php-server.log
+
+# Generated/compiled output — never source, never worth versioning
+application/templates_c/
+coverage/
+coverage-report/
+
+# Runtime data — this app stores uploaded documents, generated previews, and
+# logs outside the source tree by default (see application/configs/config.php's
+# dataDir), but these patterns are here too in case a deployment ever nests
+# them inside the repo.
+document_repository/
+preview_cache/
+*.log

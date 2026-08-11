@@ -1,0 +1,76 @@
+		{if isset($mode)}{$mode|escape:'html'}{/if}
+                {if $submit_value == 'Authorize'}Approve{else}{$submit_value|escape:'html'}{/if} Document — Reviewer Note
+		<form name="author_note_form"
+			{if isset($mode) && $mode eq 'root'}
+			 action="toBePublished?mode=root" method="POST">
+			{else}
+			 action="toBePublished" method="POST">
+                        {/if}
+		{$csrf_token_field}
+		<table name="author_note_table">
+		<tr>
+		<td>Author / Recipient</td>
+		<td>
+                    <input type="text" name="to" value="{if isset($default_to_name) && $default_to_name != ''}{$default_to_name|escape:'html'}{else}Author(s){/if}" size='15' {$access_mode|escape:'html'}>
+                </td>
+		</tr>
+                <tr>
+                    <td>Notification Subject</td>
+                    <td>
+                        <input type="text" name="subject" size=50 value="" size='30' {$access_mode|escape:'html'}></td>
+                </tr>
+                <tr>
+                    <td>Reason for {if $submit_value == 'Authorize'}Approval{else}{$submit_value|escape:'html'}{/if}</td>
+                    <td><textarea name="comments" cols=45 rows=7 size='220' {$access_mode|escape:'html'}></textarea></td>
+                </tr>
+		</table>
+		<br />&nbsp&nbsp
+                    
+
+			<tr><input type="hidden" name="checkbox" value="{foreach from=$checkbox item=id}{$id} {/foreach}" /></tr>
+			<table border="0">
+			<tr>
+                            <td>{$g_lang_email_email_all_users}</td>
+                            <td>
+                                <input type="checkbox" name="send_to_all" onchange="send_to_dept.disabled = !send_to_dept.disabled; author_note_form.elements['send_to_users[]'].disabled = !author_note_form.elements['send_to_users[]'].disabled;"></td>
+                        </tr>
+			<tr>
+                            <td>{$g_lang_email_email_whole_department}</td>
+                            <td>
+                                <input type="checkbox" name="send_to_dept" onchange="check(this.form.elements['send_to_users[]'], this, send_to_all);"></td>
+                        </tr>
+			<tr>
+                            <td valign="top">{$g_lang_email_email_these_users}:</td>
+                            <td>
+                                <select name="send_to_users[]" multiple onchange="check(this, send_to_dept, send_to_all);">
+                                    <option value="0">no one</option>
+                                    <option value="owner" selected="selected">file owners</option>
+                                    {foreach from=$user_info item=user}
+                                    <option value="{$user.id}">{$user.last_name|escape:'html'}, {$user.first_name|escape:'html'}</option>
+                                    {/foreach}
+
+                                    
+			</select></td></tr></table>
+			<br />
+                         <div class="buttons">
+                            <button class="positive" type="submit" name="submit" value="{$submit_value|escape:'html'}">{if $submit_value == 'Authorize'}Approve{else}{$submit_value|escape:'html'}{/if}</button>
+                            <button class="negative" type="button" onclick="window.location.href='out'">{$g_lang_button_cancel}</button>
+                         </div><br /><br />
+
+		</form>
+                {literal}
+                <script type="text/javascript">
+		function check(select, send_dept, send_all)
+		{
+			if(send_dept.checked || select.options[select.selectedIndex].value != "0")
+				send_all.disabled = true;
+			else
+			{
+				send_all.disabled = false;
+				for(var i = 1; i < select.options.length; i++)
+					select.options[i].selected = false;
+			}
+		}
+
+	</script>
+                {/literal}
