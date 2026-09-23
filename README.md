@@ -41,6 +41,9 @@ than by policy alone.
 
 None of this requires the classification/workflow features to be used — a deployment that doesn't need them behaves like standard OpenDocMan.
 
+**Using these features day-to-day?** See the [User Guide](USER_GUIDE.md) — classification, Staged
+Approval, Access Requests, and Groups, from the end user's side rather than the admin/dev side.
+
 ## Inherited from OpenDocMan
 
     * Upload files using web browser
