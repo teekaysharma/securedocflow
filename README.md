@@ -54,9 +54,11 @@ None of this requires the classification/workflow features to be used — a depl
 - GPL 2.0
 
 # Technologies
-- PHP 8.2
-- Database: MySQL 8+, MariaDB 10.0+
-- PHP Capable web server
+- PHP 8.2 (what this fork is built and deployed on; the installer's own requirement check only
+  enforces PHP 7.4+, so older PHP may work but isn't what's tested)
+- Database: MySQL 8+, or MariaDB (the bundled Docker image pins 10.4 — no specific MariaDB
+  version is enforced in code)
+- PHP-capable web server (Apache with `mod_rewrite` for a non-Docker install)
 
 # Support
 
@@ -68,8 +70,8 @@ questions specific to what's built here, use
 
 # Installation
 
-Prerequisites either way: PHP 8.2, MySQL 8+ or MariaDB 10.4+, and (for a non-Docker deployment)
-an Apache server with `mod_rewrite`.
+Prerequisites either way: PHP 8.2 (7.4+ is the enforced floor, see Technologies below), MySQL 8+
+or MariaDB, and (for a non-Docker deployment) an Apache server with `mod_rewrite`.
 
 ## Installing via Docker (recommended)
 
