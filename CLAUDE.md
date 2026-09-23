@@ -50,6 +50,13 @@ land in this repo, or route that work to the non-public tracking system instead.
   2026-09-23 to also commit dev deps (phpunit, mockery, phplint) so the test suite is runnable
   immediately after clone with no setup step. `application/vendor` is ~13MB as of this writing —
   reasonable, but don't casually add heavy dev tooling without checking that stays true.
+  **Real, verified cost of that decision**: `phpunit`/`mockery`'s deepest committed paths are
+  ~140 characters, which — combined with a nested clone destination — can exceed Windows' 260-char
+  path limit and abort `git clone` partway through (`Filename too long`). Confirmed by actually
+  cloning the pushed repo: fails at a deep scratch path without `core.longpaths=true`, succeeds
+  cleanly at a short one (`C:\tmp-sdf-test`). Documented in the README's Installation section
+  rather than reverted — the repo owner's explicit choice (2026-09-23, via `AskUserQuestion`) over
+  dropping the committed-dev-deps convention.
 
 ## Development process — AI-native SDLC playbook (adopted 2026-09-23)
 

@@ -76,6 +76,18 @@ questions specific to what's built here, use
 Prerequisites either way: PHP 8.2 (7.4+ is the enforced floor, see Technologies below), MySQL 8+
 or MariaDB, and (for a non-Docker deployment) an Apache server with `mod_rewrite`.
 
+**Windows: enable long paths before cloning.** Both production and dev dependencies are committed
+into `application/vendor/` (see Repo below), and a few files in there (`phpunit`, `mockery`) have
+paths deep enough that combined with a nested clone destination — a synced `Documents` folder is a
+common case — Windows' classic 260-character path limit can abort the checkout partway through
+with `Filename too long`. Verified: cloning to a short path (e.g. `C:\securedocflow`) works with no
+extra steps; cloning to a deeply nested one can fail outright. Avoid it entirely with:
+```bash
+git config --global core.longpaths true
+```
+(or pass `-c core.longpaths=true` to a single `git clone` instead of setting it globally). Not an
+issue on macOS/Linux.
+
 ## Installing via Docker (recommended)
 
 Docker Compose runs the app and database together; `docker-compose.yml` mounts persistent
