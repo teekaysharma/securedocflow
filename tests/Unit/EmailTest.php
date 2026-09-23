@@ -75,8 +75,10 @@ class EmailTest extends TestCase
         $email->setBody('This is a test');
         $this->assertSame('This is a test', $email->getBody());
 
-        // Recipients
-        $this->assertNull($email->getRecipients());
+        // Recipients — defaults to [] (not null): a prior fix made this
+        // explicit after count(null) crashed sendEmail() when a department
+        // had zero reviewers (see Email.class.php's constructor).
+        $this->assertSame([], $email->getRecipients());
         $result = $email->setRecipients('not-an-array');
         $this->assertFalse($result, 'setRecipients should return false for non-array input');
 

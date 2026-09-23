@@ -2,6 +2,16 @@
 
 use PHPUnit\Framework\TestCase;
 
+// Group_Perms.class.php exists but isn't in bootstrap.php's manual require
+// list (added after that list was written, alongside the Groups feature) —
+// UserPermission::getAuthority() constructs one internally. Required here,
+// not in bootstrap.php: loading it globally for every test class was tried
+// and reverted (2026-09-23) — it broke unrelated, previously-passing tests
+// in other classes (DeptPermsTest, FileDataTest, UserModelTest) that never
+// exercise Group_Perms at all, evidence of shared global state some other
+// test leans on. Scoping the require to just this file keeps the fix local
+// to the tests that actually need it.
+require_once APPLICATION_PATH . '/models/Group_Perms.class.php';
 require_once APPLICATION_PATH . '/models/UserPermission.class.php';
 
 class UserPermissionOrchestratorTest extends TestCase

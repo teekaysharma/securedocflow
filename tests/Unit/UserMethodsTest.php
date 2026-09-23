@@ -201,53 +201,38 @@ class UserMethodsTest extends TestCase
     }
 
     /**
-     * Test validatePassword method with MD5 password
+     * validatePassword() against a password_hash()/bcrypt-stored password —
+     * the current, primary storage format (migrated off MD5 2026-08-11).
      */
-    public function testValidatePasswordWithMD5(): void
+    public function testValidatePasswordWithBcryptHash(): void
     {
         $password = 'test_password';
-        
-        // First query (MD5) succeeds
-        $this->mockStatement->shouldReceive('execute')
+
+        $this->mockStatement->shouldReceive('fetch')
             ->once()
-            ->with([':non_encrypted_password' => $password, ':id' => $this->user->id])
-            ->andReturn(true);
-        
-        $this->mockStatement->shouldReceive('rowCount')
-            ->once()
-            ->andReturn(1);
-        
+            ->andReturn(['password' => password_hash($password, PASSWORD_DEFAULT)]);
+
         $result = $this->user->validatePassword($password);
         $this->assertTrue($result);
     }
 
     /**
-     * Test validatePassword method falling back to old password() style
+     * validatePassword() against a legacy unsalted-MD5-stored password (an
+     * account that hasn't logged in since the bcrypt migration) — must still
+     * authenticate, and transparently upgrade the stored hash via
+     * changePassword() so the account is on password_hash() from then on.
      */
-    public function testValidatePasswordWithOldPasswordStyle(): void
+    public function testValidatePasswordWithLegacyMd5UpgradesHash(): void
     {
         $password = 'test_password';
-        
-        // First query (MD5) fails
-        $this->mockStatement->shouldReceive('execute')
+
+        $this->mockStatement->shouldReceive('fetch')
             ->once()
-            ->with([':non_encrypted_password' => $password, ':id' => $this->user->id])
-            ->andReturn(true);
-        
-        $this->mockStatement->shouldReceive('rowCount')
-            ->once()
-            ->andReturn(0);
-        
-        // Second query (password()) succeeds
-        $this->mockStatement->shouldReceive('execute')
-            ->once()
-            ->with([':non_encrypted_password' => $password, ':id' => $this->user->id])
-            ->andReturn(true);
-        
-        $this->mockStatement->shouldReceive('rowCount')
-            ->once()
-            ->andReturn(1);
-        
+            ->andReturn(['password' => md5($password)]);
+
+        // changePassword()'s UPDATE runs on the same mocked statement; the
+        // default execute()->andReturn(true) from setUp() covers it — this
+        // test only needs to confirm the legacy password still authenticates.
         $result = $this->user->validatePassword($password);
         $this->assertTrue($result);
     }

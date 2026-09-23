@@ -140,7 +140,11 @@ final class CsrfTemplatesTest extends TestCase
                 $block = '';
             }
 
-            if (\stripos($block, '{$csrf_token_field}') === false) {
+            // Matches the generic {$csrf_token_field} as well as action-scoped
+            // fields like {$review_csrf_field} (details.tpl) — any Smarty
+            // variable whose name contains "csrf" is a real token field, not
+            // just the one literal global variable name.
+            if (!\preg_match('/\{\$\w*csrf\w*\}/i', $block)) {
                 $line = $this->lineFromOffset($normalized, $startPos);
                 $missing[] = [
                     'line' => $line,
