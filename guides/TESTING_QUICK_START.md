@@ -1,6 +1,7 @@
-# OpenDocMan Unit Testing - Quick Start Guide
+# Unit Testing - Quick Start Guide
 
-This document provides a quick overview of the unit testing setup for OpenDocMan and how to get started with writing and running tests.
+This document provides a quick overview of the unit testing setup for this fork and how to get
+started with writing and running tests.
 
 ## 🚀 Quick Start
 
@@ -9,23 +10,23 @@ This document provides a quick overview of the unit testing setup for OpenDocMan
 # Install testing dependencies
 composer install --ignore-platform-reqs
 
-# Or use our convenience script
-./run-tests.sh install
+# Or use the convenience script
+./scripts/run-tests.sh install
 ```
 
 ### 2. Run Tests
 ```bash
 # Run all tests
-./run-tests.sh all
+./scripts/run-tests.sh all
 
 # Or use composer
 composer test
 
 # Run only unit tests
-./run-tests.sh unit
+./scripts/run-tests.sh unit
 
 # Run only integration tests
-./run-tests.sh integration
+./scripts/run-tests.sh integration
 ```
 
 ### 3. Check Test Results
@@ -118,17 +119,20 @@ class UserTest extends TestCase
 
 ## 🔧 Available Commands
 
-Our test runner script (`./run-tests.sh`) provides these commands:
+The test runner script (`scripts/run-tests.sh`) provides these commands:
 
 | Command | Description |
 |---------|-------------|
-| `./run-tests.sh all` | Run all tests |
-| `./run-tests.sh unit` | Run only unit tests |
-| `./run-tests.sh integration` | Run only integration tests |
-| `./run-tests.sh coverage` | Generate code coverage report |
-| `./run-tests.sh class User` | Run tests for User class |
-| `./run-tests.sh file CategoryTest` | Run specific test file |
-| `./run-tests.sh list` | List all available tests |
+| `./scripts/run-tests.sh all` | Run all tests |
+| `./scripts/run-tests.sh unit` | Run only unit tests |
+| `./scripts/run-tests.sh integration` | Run only integration tests |
+| `./scripts/run-tests.sh coverage` | Generate code coverage report |
+| `./scripts/run-tests.sh class User` | Run tests for User class |
+| `./scripts/run-tests.sh file CategoryTest` | Run specific test file |
+| `./scripts/run-tests.sh list` | List all available tests |
+
+Or via the Makefile: `make test`, `make test-unit`, `make test-integration`, `make coverage`,
+`make test-class CLASS=User`, `make test-file FILE=CategoryTest`, `make test-list`.
 
 ## 🐛 Bug Discovery & Fix Example
 
@@ -155,14 +159,14 @@ This demonstrates how unit tests help discover and verify fixes for real issues!
 
 ## 📊 Current Test Status
 
-As of the latest run:
-- ✅ **20 Unit Tests**: Testing individual class functionality  
-- ✅ **13 Integration Tests**: Testing component interactions
-- ✅ **Bug Fixed**: Category class undefined variable issue resolved
-- 📈 **157 Assertions**: Comprehensive test coverage
-- ✅ **Clean Output**: No more "undefined array key" errors or informational messages
-- 🎯 **All Tests Passing**: 33/33 tests with no incomplete or skipped tests
-- 🧹 **Professional Output**: Filtered test runner removes clutter for clean results
+This section goes stale fast — it did, which is why it's short now. For the actual current
+baseline (pass/fail/error counts, and the known root causes behind any open failures), see
+[`CLAUDE.md`](../CLAUDE.md)'s Commands section, or just run:
+```bash
+./scripts/run-tests.sh all
+```
+The `Category::getAllCategories()` undefined-variable fix mentioned below is still real and still
+in the code — that part of this doc's history is accurate, just not the pass-count snapshot.
 
 ## 🎯 Next Steps
 
@@ -190,7 +194,7 @@ As of the latest run:
 
 Generate an HTML coverage report:
 ```bash
-./run-tests.sh coverage
+./scripts/run-tests.sh coverage
 ```
 
 Open `coverage/index.html` in your browser to see:
@@ -219,7 +223,7 @@ Open `coverage/index.html` in your browser to see:
 ### Common Issues
 1. **"Class not found"**: Check if class is included in `bootstrap.php`
 2. **"Database errors"**: Verify mock setup is correct - ensure both `execute()`, `fetch()`, `fetchAll()`, and `rowCount()` are mocked
-3. **"Permission denied"**: Run `chmod +x run-tests.sh`
+3. **"Permission denied"**: Run `chmod +x scripts/run-tests.sh`
 4. **"Undefined array key"**: Ensure `$GLOBALS['CONFIG']` includes both `db_prefix` and `database_prefix`
 
 ### Getting Help

@@ -1,6 +1,7 @@
-# OpenDocMan Makefile Guide
+# Makefile Guide
 
-This guide explains how to use the consolidated Makefile and script structure for OpenDocMan development and testing.
+This guide explains how to use the consolidated Makefile and script structure for this fork's
+development and testing.
 
 ## Overview
 
@@ -25,7 +26,7 @@ make help
 ## Project Structure
 
 ```
-opendocman/
+securedocflow/
 ├── Makefile              # Main task runner (source of truth)
 ├── scripts/              # Shell scripts (organized by functionality)
 │   ├── run-tests.sh      # Comprehensive test runner

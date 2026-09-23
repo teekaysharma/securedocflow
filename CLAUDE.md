@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenDocMan (this fork)
+# CLAUDE.md — SecureDocFlow (fork of OpenDocMan)
 
 This file is read automatically by Claude Code at the start of every session in this repo. Treat
 it as authoritative project context. Written 2026-09-23, adopting the AI-native SDLC playbook
@@ -19,23 +19,31 @@ system, and this file only ever points across to it in the abstract.
 ## Ownership
 
 This git repo is a **sanitized public GitHub portfolio fork**, extracted 2026-08-11 from a real
-client engagement. It contains no client name, no real documents, no real user data — verified by
-a full repo-tree search before the first commit (see `SECURITY.md`'s hardening summary and the
-README's "About this fork" section). Do not reintroduce client-identifying content here under any
+client engagement, renamed **SecureDocFlow** and published 2026-09-23. It contains no client name,
+no real documents, no real user data — verified by a full repo-tree search before the first commit
+(see `SECURITY.md`'s hardening summary and the README's "Credit where it's due" / "What
+SecureDocFlow adds" sections). Do not reintroduce client-identifying content here under any
 circumstance, including in code comments, test fixtures, `docs/superpowers/` entries, or commit
 messages — if a future task's context includes real client specifics, generalize them before they
 land in this repo, or route that work to the non-public tracking system instead.
 
 ## Repo
 
-- No remote configured yet — local-only as of this writing, one commit (`f0fa288`, 987 files).
-  Pushing to GitHub needs the repo owner's own credentials; not something Claude does
-  unprompted here.
-- No CI/CD (`.github/workflows/release-please.yml` handles releases only, not tests/lint on push).
-- No PR workflow observed yet — only one commit exists, so there's no established merge practice
-  to describe accurately. Don't assume a policy that hasn't actually been demonstrated; ask, or
-  default to direct commits with the same per-instance explicit-approval discipline any repo needs
-  for its first several changes.
+- **Public on GitHub as of 2026-09-23**: https://github.com/teekaysharma/securedocflow (renamed
+  from the working "opendocman" fork name — the divergence from upstream is substantial enough to
+  warrant its own identity; see the README's "Credit where it's due" section for the attribution
+  back to upstream). Pushed via `gh repo create --push` using the repo owner's own `gh` auth.
+- No CI/CD at all — `.github/workflows/release-please.yml` was removed 2026-09-23. It had been
+  copied over from upstream unmodified (`package-name: opendocman`) and was live: it had already
+  run successfully on every push to this repo (verified via `gh run list`) with no visible effect
+  yet only because no commit message used a Conventional Commit `feat:`/`fix:` prefix — the next
+  one would have opened a real, "opendocman"-branded GitHub Release on this repo. Removed rather
+  than rebranded, per the repo owner's explicit choice (this is a portfolio piece, not a versioned
+  product with a release cadence). `CHANGELOG.md` was removed in the same pass — it was upstream's
+  actual changelog (real `opendocman/opendocman` commit hashes and issue links), not this fork's.
+- No PR workflow observed — commits go directly to `master` with the same per-instance
+  explicit-approval discipline any repo needs. Don't assume a formal branch/PR policy that hasn't
+  actually been demonstrated.
 - Dependencies: Composer, `vendor-dir` set to `application/vendor` (not the repo root's `vendor/`).
   **Both prod and dev dependencies are committed** (not gitignored) — a pre-existing project
   convention (the `Dockerfile`/`Makefile` don't run `composer install` anywhere), extended

@@ -2,16 +2,18 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 2.0.x   | :white_check_mark: |
-| < 2.0   | :x:                |
+This is a single-branch portfolio fork, not a versioned product — only `master` is maintained.
 
 ## Reporting a Vulnerability
 
-To report a security vulnerability, please use GitHub's **private vulnerability reporting** feature on this repository:
+To report a security vulnerability in **this fork**, please use GitHub's **private vulnerability
+reporting** feature on this repository:
 
-https://github.com/opendocman/opendocman/security/advisories
+https://github.com/teekaysharma/securedocflow/security/advisories
+
+(This is separate from upstream OpenDocMan — if you've found an issue in code this fork inherited
+unchanged from upstream, consider also reporting it to
+[opendocman/opendocman](https://github.com/opendocman/opendocman/security/advisories).)
 
 This ensures the report is only visible to the maintainers and is not publicly accessible.
 
