@@ -78,8 +78,6 @@ verified (see `docs/superpowers/INDEX.md`'s backfilled rows); it just wasn't pro
 Don't retroactively force it into the new structure — apply the playbook going forward.
 
 **Known gaps against the playbook's later stages** (as of 2026-09-23, not yet closed):
-- Test suite exists and mostly runs (see Commands below) but has real, disclosed pre-existing
-  failures — not zero coverage, but not a clean baseline either.
 - No `.claude/skills/` yet for this repo's own policy areas (SQL/table-prefix conventions, CSRF
   patterns, file-path validation) — candidate for a future initiative, see INDEX.md.
 - No hooks (`.claude/settings.json`) — no build-time guardrails exist.
@@ -95,27 +93,42 @@ Don't retroactively force it into the new structure — apply the playbook going
   shell wrapper doesn't run directly under Windows PHP — call the real entry point instead).
   Or via Composer: `composer test` (same runner, with the project's own noise filter for a known
   benign diagnostic line — see "Things Claude gets wrong" below).
-  **Current verified baseline (2026-09-23): 297 tests, 31 errors, 0 failures.** Not clean — see
-  the next paragraph — but a genuine, checked number, not an assumption.
+  **Current verified baseline (2026-09-23): 297 tests, 1819 assertions, 0 errors, 0 failures.**
+  Clean — see the next paragraph for how it got there.
 - **Lint:** `php application/vendor/overtrue/phplint/bin/phplint --no-configuration application/`
   (same real-entry-point caveat as phpunit). Verified clean: `OK! (Files: 78, Success: 78)` against
   `application/models` + `application/controllers` as of 2026-09-23.
 
-**Test suite health, disclosed rather than hidden:** the 31 errors are concentrated in
-`DeptPermsTest` (3), `FileDataTest` (12), `UserMethodsTest` (4), `UserModelTest` (7), and
-`UserPermissionOrchestratorTest` (5) — confirmed via `--filter FileDataTest` run in complete
-isolation that these are genuinely pre-existing, independent of each other (not one cascading
-failure). Root causes identified so far: stale PDO-mock row shapes that don't include fields added
-since the tests were written (e.g. `doc_version`), and — for `UserPermissionOrchestratorTest`
-specifically — `UserPermission`'s constructor now builds a `Group_Perms` object (added with the
-Groups feature) that older mocks don't account for. **Four real, verified fixes landed 2026-09-23**
-while establishing this baseline (see `docs/superpowers/INDEX.md`): a genuine class-autoload gap
+**Test suite health — the 31-error debt disclosed earlier today is now closed.** The 31 errors
+(concentrated in `DeptPermsTest` (3), `FileDataTest` (12), `UserMethodsTest` (4), `UserModelTest`
+(7), `UserPermissionOrchestratorTest` (5)) were root-caused and fixed via `systematic-debugging`,
+same day. Two real patterns, both stale test mocks lagging behind real feature additions, not
+application bugs:
+1. **Missing `doc_version`/`doc_revision`/`doc_classification`/`valid_until`/
+   `workflow_template_id`/`workflow_stage_number`/`serial_number` keys** in `FileData` row mocks —
+   `FileData::loadData()`'s SELECT includes these (document versioning/classification/workflow/
+   serial-number features), but every mock row predated them.
+2. **Missing mocks for methods added by later features** on shared code paths — `Group_Perms`
+   (added with Groups) queried for real inside `UserPermission::getViewableFileIds()` when the
+   test only overrode `dept_perms_obj`/`user_perms_obj`; `isReviewerForFile()`/`isReviewer()`
+   falling through to a Staged-Approval `isStageApproverForFile()`/workflow-approver check that
+   older tests didn't know existed; `getRevieweeIds()` now always also merges
+   `getWorkflowRevieweeIds()` (Staged Approval); and the 2026-08-11 multi-department bug fix
+   changed `getRevieweeIds()`'s SQL placeholders from one reused `:dept` to per-department
+   `:dept0`, `:dept1`, ... (PDO only binds one value per named parameter — the old reused
+   placeholder silently collapsed every department to the last one's value).
+
+Also found and fixed two files (`UserModelTest.php`'s password tests, and one test each in
+`UserMethodsTest.php`/`UserModelTest.php`) that were *still* asserting the pre-2026-08-11
+two-query MD5/`PASSWORD()`-style `validatePassword()` behavior — apparently missed when its
+sibling tests were fixed earlier the same day. Rewritten to test the actual current single-query
+`password_hash()`/`password_verify()` flow, matching the fixes already applied elsewhere.
+
+Earlier the same day, before this baseline was reached: a genuine class-autoload gap
 (`Group_Perms.class.php` missing from a test file's manual require list), a CSRF-detection test
 false positive (a form using an action-scoped token variable name the regex didn't recognize), and
-two pairs of tests asserting pre-security-migration behavior (unsalted MD5/legacy-`PASSWORD()`
-password checks, and a `null`-vs-`[]` default) that the 2026-08-11 security hardening correctly
-changed out from under them. **The remaining 31 are a real, open gap, not yet fixed** — don't
-claim a clean test suite until they're actually resolved.
+two pairs of tests asserting pre-security-migration behavior (a `null`-vs-`[]` default) that the
+2026-08-11 security hardening correctly changed out from under them.
 
 ## Stack and architecture rules
 
@@ -161,10 +174,11 @@ file), and confirming a suspected regression by isolating variables (stash, reve
 correlation.
 
 **Surgical fixes, disclosed gaps.** Fix the specific, verified root cause. When a fix reveals a
-larger pattern (like the 31 remaining test failures), stop, document what's known, and say so
-explicitly rather than either chasing every thread to completion unprompted or quietly leaving the
-gap undocumented. `docs/superpowers/INDEX.md` and this file's Commands section are where that
-disclosure lives — keep them current.
+larger pattern (like the 31 test failures disclosed earlier 2026-09-23 and closed later the same
+day — see Commands above), stop, document what's known, and say so explicitly rather than either
+chasing every thread to completion unprompted or quietly leaving the gap undocumented.
+`docs/superpowers/INDEX.md` and this file's Commands section are where that disclosure lives —
+keep them current.
 
 **No client content in this repo, ever** — see Ownership above. This is the one rule in this file
 with zero exceptions.

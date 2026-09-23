@@ -238,38 +238,43 @@ class UserMethodsTest extends TestCase
     }
 
     /**
-     * Test validatePassword method with completely invalid password
+     * validatePassword() against a wrong password, with a real (bcrypt)
+     * stored hash. This used to mock the old two-query MD5/PASSWORD()-style
+     * flow -- current code runs one query and checks the fetched hash
+     * in PHP (see testValidatePasswordWithBcryptHash above).
      */
     public function testValidatePasswordWithInvalidPassword(): void
     {
         $password = 'wrong_password';
-        
-        // Both queries fail
-        $this->mockStatement->shouldReceive('execute')
-            ->twice()
-            ->with([':non_encrypted_password' => $password, ':id' => $this->user->id])
-            ->andReturn(true);
-        
-        $this->mockStatement->shouldReceive('rowCount')
-            ->twice()
-            ->andReturn(0);
-        
+
+        $this->mockStatement->shouldReceive('fetch')
+            ->once()
+            ->andReturn(['password' => password_hash('correct_password', PASSWORD_DEFAULT)]);
+
         $result = $this->user->validatePassword($password);
         $this->assertFalse($result);
     }
 
     /**
-     * Test changePassword method
+     * changePassword() binds :hashed_password (a fresh password_hash() of
+     * the plaintext, not the plaintext itself under :non_encrypted_password
+     * as this test used to assume) and :id. bcrypt salts randomly, so the
+     * bound value can't be compared for literal equality -- verify it with
+     * password_verify() instead of a fixed expected value.
      */
     public function testChangePassword(): void
     {
         $newPassword = 'new_secure_password';
-        
+
         $this->mockStatement->shouldReceive('execute')
             ->once()
-            ->with([':non_encrypted_password' => $newPassword, ':id' => $this->user->id])
+            ->with(\Mockery::on(function ($args) use ($newPassword) {
+                return isset($args[':hashed_password'], $args[':id'])
+                    && $args[':id'] === $this->user->id
+                    && password_verify($newPassword, $args[':hashed_password']);
+            }))
             ->andReturn(true);
-        
+
         $result = $this->user->changePassword($newPassword);
         $this->assertTrue($result);
     }
@@ -352,16 +357,20 @@ class UserMethodsTest extends TestCase
     public function testIsReviewerForFileWithInvalidFile(): void
     {
         $fileId = 999;
-        
+
+        // isReviewerForFile() falls through to isStageApproverForFile() (a
+        // Staged Approval feature added after this test was written) when the
+        // direct dept-reviewer check finds nothing -- both queries bind the
+        // same :user_id/:file_id values, so both real calls land here.
         $this->mockStatement->shouldReceive('execute')
-            ->once()
+            ->twice()
             ->with([':user_id' => $this->user->id, ':file_id' => $fileId])
             ->andReturn(true);
-        
+
         $this->mockStatement->shouldReceive('rowCount')
-            ->once()
+            ->twice()
             ->andReturn(0);
-        
+
         $result = $this->user->isReviewerForFile($fileId);
         $this->assertFalse($result);
     }
@@ -471,25 +480,43 @@ class UserMethodsTest extends TestCase
             ->once()
             ->andReturn(2);
         
-        // Mock files query
+        // Mock files query. Each department gets its own placeholder
+        // (:dept0, :dept1, ...) rather than one reused ":dept" -- a 2026-08-11
+        // fix, since PDO only binds one value per named parameter and a
+        // reused placeholder silently collapsed every department to the
+        // last one's value. See User.class.php's getRevieweeIds() comment.
         $fileData = [
             ['id' => 100],
             ['id' => 200]
         ];
-        
+
         $this->mockStatement->shouldReceive('execute')
             ->once()
-            ->with([':dept' => 2]) // Last department ID
+            ->with([':dept0' => 1, ':dept1' => 2])
             ->andReturn(true);
-        
+
         $this->mockStatement->shouldReceive('fetchAll')
             ->once()
             ->andReturn($fileData);
-        
+
         $this->mockStatement->shouldReceive('rowCount')
             ->once()
             ->andReturn(2);
-        
+
+        // getRevieweeIds() also always merges in getWorkflowRevieweeIds() --
+        // documents reviewable purely via a Staged Approval workflow-stage
+        // assignment, added after this test was written. Not exercised here,
+        // so it contributes nothing.
+        $this->mockStatement->shouldReceive('execute')
+            ->once()
+            ->with([':user_id' => $this->user->id])
+            ->andReturn(true);
+
+        $this->mockStatement->shouldReceive('fetchAll')
+            ->once()
+            ->with(PDO::FETCH_COLUMN)
+            ->andReturn([]);
+
         $result = $this->user->getRevieweeIds();
         $this->assertIsArray($result);
         $this->assertCount(2, $result);

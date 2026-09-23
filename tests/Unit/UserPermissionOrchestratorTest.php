@@ -215,11 +215,17 @@ class UserPermissionOrchestratorTest extends TestCase
         $mockUP = $this->setupOverloadedUserPerms([
             'getCurrentViewOnly' => [10, 11, 12], // user list (12 overlaps with dept)
         ]);
+        // getViewableFileIds() also queries group_perms_obj for real unless overridden
+        // (added with the Groups feature) -- this test isn't exercising groups, so it
+        // contributes nothing, matching the expected-result comment below.
+        $mockGP = \Mockery::mock(Group_Perms::class)->makePartial();
+        $mockGP->shouldReceive('getCurrentViewOnly')->andReturn([])->byDefault();
 
         $up = new UserPermission(10, $pdo);
         $up->user_obj = $mockUser;
         $up->dept_perms_obj = $mockDP;
         $up->user_perms_obj = $mockUP;
+        $up->group_perms_obj = $mockGP;
 
         // Expected: user [10,11,12] + (dept [12,13,14] - [13] - userOverlap[10,11,12]) => [10,11,12,14]
         $this->assertSame([10, 11, 12, 14], $up->getViewableFileIds(true));
@@ -256,6 +262,9 @@ class UserPermissionOrchestratorTest extends TestCase
             'category' => 1, 'owner' => 1, 'created' => '2020-01-01 00:00:00',
             'description' => '', 'comment' => '', 'status' => 0,
             'department' => 1, 'default_rights' => 0,
+            'doc_version' => 1, 'doc_revision' => 0, 'doc_classification' => 'Public',
+            'valid_until' => null, 'workflow_template_id' => null,
+            'workflow_stage_number' => null, 'serial_number' => null,
         ]]);
         $stmtLoad->shouldReceive('rowCount')->once()->andReturn(1);
 
@@ -311,6 +320,9 @@ class UserPermissionOrchestratorTest extends TestCase
             'category' => 1, 'owner' => 1, 'created' => '2020-01-01 00:00:00',
             'description' => '', 'comment' => '', 'status' => 0,
             'department' => 1, 'default_rights' => 0,
+            'doc_version' => 1, 'doc_revision' => 0, 'doc_classification' => 'Public',
+            'valid_until' => null, 'workflow_template_id' => null,
+            'workflow_stage_number' => null, 'serial_number' => null,
         ]]);
         $stmtLoad->shouldReceive('rowCount')->once()->andReturn(1);
 
@@ -368,6 +380,9 @@ class UserPermissionOrchestratorTest extends TestCase
             'category' => 1, 'owner' => 10, 'created' => '2020-01-01 00:00:00',
             'description' => '', 'comment' => '', 'status' => -1,
             'department' => 1, 'default_rights' => 0,
+            'doc_version' => 1, 'doc_revision' => 0, 'doc_classification' => 'Public',
+            'valid_until' => null, 'workflow_template_id' => null,
+            'workflow_stage_number' => null, 'serial_number' => null,
         ]]);
         $stmtLoad->shouldReceive('rowCount')->once()->andReturn(1);
 
@@ -433,6 +448,9 @@ class UserPermissionOrchestratorTest extends TestCase
             'category' => 1, 'owner' => 1, 'created' => '2020-01-01 00:00:00',
             'description' => '', 'comment' => '', 'status' => 0,
             'department' => 1, 'default_rights' => 0,
+            'doc_version' => 1, 'doc_revision' => 0, 'doc_classification' => 'Public',
+            'valid_until' => null, 'workflow_template_id' => null,
+            'workflow_stage_number' => null, 'serial_number' => null,
         ]]);
         $stmtLoad->shouldReceive('rowCount')->once()->andReturn(1);
 

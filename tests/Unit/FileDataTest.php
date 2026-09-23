@@ -29,6 +29,21 @@ class FileDataTest extends TestCase
 
     private function createBaseStmtsForConstructor(string $realname, array $dataRow)
     {
+        // loadData()'s SELECT includes these columns (added after this test file was
+        // written, alongside document versioning/classification/workflow/serial-number
+        // features) -- every $dataRow literal in this file predates them, so fill in
+        // realistic defaults for whichever ones a given test doesn't care about and
+        // didn't already set, rather than editing every literal in this file.
+        $dataRow += [
+            'doc_version' => 1,
+            'doc_revision' => 0,
+            'doc_classification' => 'Public',
+            'valid_until' => null,
+            'workflow_template_id' => null,
+            'workflow_stage_number' => null,
+            'serial_number' => null,
+        ];
+
         // findName() statement
         $stmtFindName = \Mockery::mock(\PDOStatement::class);
         $stmtFindName->shouldReceive('execute')->once()->with([':id' => 123])->andReturn(true);

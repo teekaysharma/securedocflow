@@ -674,37 +674,38 @@ class UserModelTest extends TestCase
     }
 
     /**
-     * Test validatePassword method with valid password
+     * validatePassword() runs one query and checks the fetched row's
+     * 'password' column in PHP (password_verify()/hash_equals()) -- these
+     * three tests used to mock an old two-query, rowCount()-branching
+     * MD5/PASSWORD()-style implementation that no longer exists (removed
+     * 2026-08-11; MySQL 8 dropped PASSWORD() entirely). setUp()'s default
+     * fetch() returns the constructor's indexed $userData row, which has no
+     * 'password' key, so each of these needs its own fetch() mock.
      */
     public function testValidatePasswordWithValidPassword(): void
     {
         $password = 'correct_password';
-        
-        $this->mockStatement->shouldReceive('rowCount')
+
+        $this->mockStatement->shouldReceive('fetch')
             ->once()
-            ->andReturn(1);
-        
+            ->andReturn(['password' => password_hash($password, PASSWORD_DEFAULT)]);
+
         $result = $this->user->validatePassword($password);
         $this->assertTrue($result);
     }
 
     /**
-     * Test validatePassword method with invalid password using old password() style
+     * A legacy unsalted-MD5-stored password (an account that hasn't logged
+     * in since the bcrypt migration) must still authenticate.
      */
     public function testValidatePasswordWithOldStylePassword(): void
     {
         $password = 'old_style_password';
-        
-        // First query returns 0 rows (md5 style fails)
-        $this->mockStatement->shouldReceive('rowCount')
+
+        $this->mockStatement->shouldReceive('fetch')
             ->once()
-            ->andReturn(0);
-        
-        // Second query returns 1 row (password() style succeeds)
-        $this->mockStatement->shouldReceive('rowCount')
-            ->once()
-            ->andReturn(1);
-        
+            ->andReturn(['password' => md5($password)]);
+
         $result = $this->user->validatePassword($password);
         $this->assertTrue($result);
     }
@@ -715,12 +716,11 @@ class UserModelTest extends TestCase
     public function testValidatePasswordWithInvalidPassword(): void
     {
         $password = 'wrong_password';
-        
-        // Both queries return 0 rows
-        $this->mockStatement->shouldReceive('rowCount')
-            ->twice()
-            ->andReturn(0);
-        
+
+        $this->mockStatement->shouldReceive('fetch')
+            ->once()
+            ->andReturn(['password' => password_hash('correct_password', PASSWORD_DEFAULT)]);
+
         $result = $this->user->validatePassword($password);
         $this->assertFalse($result);
     }
@@ -785,7 +785,7 @@ class UserModelTest extends TestCase
     {
         $this->user->root_id = 1;
         $this->user->id = 2; // Non-root user
-        
+
         // Mock admin check to return false
         $this->mockStatement->shouldReceive('fetchColumn')
             ->once()
@@ -793,12 +793,19 @@ class UserModelTest extends TestCase
         $this->mockStatement->shouldReceive('rowCount')
             ->once()
             ->andReturn(0);
-        
-        // Mock reviewer check to return false
+
+        // Mock dept-reviewer check to return false
         $this->mockStatement->shouldReceive('rowCount')
             ->once()
             ->andReturn(0);
-        
+
+        // isReviewer() then also falls through to a workflow_stage_approver
+        // check (Staged Approval feature added after this test was written)
+        // when the dept-reviewer check finds nothing.
+        $this->mockStatement->shouldReceive('rowCount')
+            ->once()
+            ->andReturn(0);
+
         $result = $this->user->isReviewer();
         $this->assertFalse($result);
     }
@@ -824,11 +831,14 @@ class UserModelTest extends TestCase
     public function testIsReviewerForFileWithInvalidFile(): void
     {
         $fileId = 999;
-        
+
+        // isReviewerForFile() falls through to isStageApproverForFile() (a
+        // Staged Approval feature added after this test was written) when
+        // the direct dept-reviewer check finds nothing.
         $this->mockStatement->shouldReceive('rowCount')
-            ->once()
+            ->twice()
             ->andReturn(0);
-        
+
         $result = $this->user->isReviewerForFile($fileId);
         $this->assertFalse($result);
     }
@@ -1015,7 +1025,16 @@ class UserModelTest extends TestCase
         $this->mockStatement->shouldReceive('rowCount')
             ->once()
             ->andReturn(2);
-        
+
+        // getRevieweeIds() also always merges in getWorkflowRevieweeIds() --
+        // documents reviewable purely via a Staged Approval workflow-stage
+        // assignment, added after this test was written. Not exercised here,
+        // so it contributes nothing.
+        $this->mockStatement->shouldReceive('fetchAll')
+            ->once()
+            ->with(PDO::FETCH_COLUMN)
+            ->andReturn([]);
+
         $result = $this->user->getRevieweeIds();
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
@@ -1028,15 +1047,17 @@ class UserModelTest extends TestCase
     {
         $this->user->root_id = 1;
         $this->user->id = 2; // Non-root user
-        
-        // Mock isReviewer to return false
+
+        // Mock isReviewer to return false: admin check, dept-reviewer check,
+        // and the workflow_stage_approver fallback (Staged Approval feature
+        // added after this test was written) all need to say no.
         $this->mockStatement->shouldReceive('fetchColumn')
             ->once()
             ->andReturn(false);
         $this->mockStatement->shouldReceive('rowCount')
-            ->twice()
+            ->times(3)
             ->andReturn(0);
-        
+
         $result = $this->user->getRevieweeIds();
         $this->assertNull($result);
     }

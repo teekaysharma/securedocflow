@@ -175,6 +175,9 @@ class DeptPermsTest extends TestCase
             'category' => 1, 'owner' => 1, 'created' => '2020-01-01 00:00:00',
             'description' => '', 'comment' => '', 'status' => 0,
             'department' => 1, 'default_rights' => 0,
+            'doc_version' => 1, 'doc_revision' => 0, 'doc_classification' => 'Public',
+            'valid_until' => null, 'workflow_template_id' => null,
+            'workflow_stage_number' => null, 'serial_number' => null,
         ]]);
         $stmtLoad->shouldReceive('rowCount')->once()->andReturn(1);
 
@@ -226,6 +229,9 @@ class DeptPermsTest extends TestCase
             'category' => 1, 'owner' => 1, 'created' => '2020-01-01 00:00:00',
             'description' => '', 'comment' => '', 'status' => 0,
             'department' => 1, 'default_rights' => 0,
+            'doc_version' => 1, 'doc_revision' => 0, 'doc_classification' => 'Public',
+            'valid_until' => null, 'workflow_template_id' => null,
+            'workflow_stage_number' => null, 'serial_number' => null,
         ]]);
         $stmtLoad->shouldReceive('rowCount')->once()->andReturn(1);
 
@@ -268,6 +274,9 @@ class DeptPermsTest extends TestCase
             'category' => 1, 'owner' => 1, 'created' => '2020-01-01 00:00:00',
             'description' => '', 'comment' => '', 'status' => 0,
             'department' => 1, 'default_rights' => 0,
+            'doc_version' => 1, 'doc_revision' => 0, 'doc_classification' => 'Public',
+            'valid_until' => null, 'workflow_template_id' => null,
+            'workflow_stage_number' => null, 'serial_number' => null,
         ]]);
         $stmtLoad->shouldReceive('rowCount')->once()->andReturn(1);
 
