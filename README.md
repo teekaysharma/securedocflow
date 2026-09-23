@@ -106,6 +106,35 @@ Other useful `make` targets: `make setup` (generate + validate + start in one st
 volumes). Run `make help` for the full list. `.env.sample` documents every available variable
 (database, ports, SMTP, SSL/TLS, upload limits, and more).
 
+## Installing with an AI coding agent
+
+`scripts/generate-env-secrets.sh` normally prompts for basic settings (hostname, ports, email,
+etc.) — fine for a human, awkward for an AI agent driving a shell. Pass `--non-interactive` and it
+skips every prompt, accepting the same bracketed defaults an interactive user gets by pressing
+Enter, auto-generating secure passwords as usual, and backing up any existing `.env` automatically
+instead of asking. Paste the block below as a prompt into an AI coding agent (Claude Code, Cursor,
+etc.) to have it install and start SecureDocFlow for local/demo use without asking you anything
+along the way:
+
+```text
+Set up SecureDocFlow for local Docker use. Docker and Docker Compose must already be installed.
+
+1. If this repo isn't already cloned locally, clone it:
+   git clone https://github.com/teekaysharma/securedocflow.git && cd securedocflow
+2. Generate the environment config without prompting:
+   ./scripts/generate-env-secrets.sh --non-interactive
+3. Start the stack:
+   make up
+   (or: docker-compose up -d --build)
+4. Wait for the containers to come up (check with `make status` or `docker-compose ps`),
+   then read the HTTP_PORT and ADMIN_PASSWORD values out of the generated .env file.
+5. Report back the login URL (http://localhost:<HTTP_PORT>) and the admin password
+   (username: admin) so I can log in.
+
+Every value already has a safe, generated default -- don't ask me any follow-up questions,
+just run it and report the result.
+```
+
 ## Installing to a web server (without Docker)
 
 1. Unzip/clone the repository into your web server's document folder.

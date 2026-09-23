@@ -21,6 +21,11 @@ The Docker setup:
 This interactive script prompts for basic configuration (hostname, ports, email), generates secure
 passwords for the database and admin user, and writes `.env` from `.env.sample`.
 
+Driving this from a script or an AI coding agent instead of a human? Pass `--non-interactive` —
+every prompt is skipped in favor of the same bracketed defaults, an existing `.env` is backed up
+automatically instead of asking, and the admin password is always the generated one. See the
+README's "Installing with an AI coding agent" section for a ready-to-paste agent prompt.
+
 ### 2. Start the application
 ```bash
 make up

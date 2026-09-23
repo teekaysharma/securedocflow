@@ -2,8 +2,24 @@
 
 # OpenDocMan Environment Secrets Generator
 # This script generates secure passwords and secrets for your .env file
+#
+# Usage:
+#   ./scripts/generate-env-secrets.sh                    Interactive (prompts for each value)
+#   ./scripts/generate-env-secrets.sh --non-interactive   Unattended: accepts every bracketed
+#                                                          default without prompting, backs up
+#                                                          an existing .env automatically, and
+#                                                          always uses the generated admin
+#                                                          password. Meant for AI coding agents
+#                                                          and scripted setups -- see the README's
+#                                                          "Installing with an AI coding agent"
+#                                                          section.
 
 set -e
+
+NON_INTERACTIVE=false
+if [ "$1" = "--non-interactive" ]; then
+    NON_INTERACTIVE=true
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -31,7 +47,11 @@ echo ""
 # Check if .env already exists
 if [ -f ".env" ]; then
     echo -e "${YELLOW}Warning: .env file already exists!${NC}"
-    read -p "Do you want to backup the existing .env file? (y/n): " backup_choice
+    if [ "$NON_INTERACTIVE" = true ]; then
+        backup_choice=y
+    else
+        read -p "Do you want to backup the existing .env file? (y/n): " backup_choice
+    fi
     if [[ $backup_choice =~ ^[Yy]$ ]]; then
         cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
         echo -e "${GREEN}Backup created as .env.backup.$(date +%Y%m%d_%H%M%S)${NC}"
@@ -56,52 +76,67 @@ ADMIN_PASSWORD=$(generate_password 16)
 SESSION_SECRET=$(generate_hex 64)
 
 # Get user input for basic configuration
-echo -e "${YELLOW}Please provide some basic configuration:${NC}"
-echo ""
+if [ "$NON_INTERACTIVE" = true ]; then
+    echo -e "${YELLOW}Non-interactive mode: using default configuration values.${NC}"
+    echo ""
 
-read -p "Database name [opendocman]: " db_name
-db_name=${db_name:-opendocman}
+    db_name=opendocman
+    db_user=opendocman
+    hostname=odm.local
+    http_port=8080
+    https_port=443
+    db_port=3306
+    email=admin@$hostname
+    timezone=UTC
+    # ADMIN_PASSWORD stays the generated one from above -- no custom-password prompt.
+else
+    echo -e "${YELLOW}Please provide some basic configuration:${NC}"
+    echo ""
 
-read -p "Database username [opendocman]: " db_user
-db_user=${db_user:-opendocman}
+    read -p "Database name [opendocman]: " db_name
+    db_name=${db_name:-opendocman}
 
-read -p "Application hostname [odm.local]: " hostname
-hostname=${hostname:-odm.local}
+    read -p "Database username [opendocman]: " db_user
+    db_user=${db_user:-opendocman}
 
-read -p "HTTP port [8080]: " http_port
-http_port=${http_port:-8080}
+    read -p "Application hostname [odm.local]: " hostname
+    hostname=${hostname:-odm.local}
 
-read -p "HTTPS port [443]: " https_port
-https_port=${https_port:-443}
+    read -p "HTTP port [8080]: " http_port
+    http_port=${http_port:-8080}
 
-read -p "Database external port [3306]: " db_port
-db_port=${db_port:-3306}
+    read -p "HTTPS port [443]: " https_port
+    https_port=${https_port:-443}
 
-read -p "Email address for notifications [admin@$hostname]: " email
-email=${email:-admin@$hostname}
+    read -p "Database external port [3306]: " db_port
+    db_port=${db_port:-3306}
 
-read -p "Timezone [UTC]: " timezone
-timezone=${timezone:-UTC}
+    read -p "Email address for notifications [admin@$hostname]: " email
+    email=${email:-admin@$hostname}
 
-echo ""
-read -p "Do you want to use custom admin password? (y/n) [n]: " custom_admin
-if [[ $custom_admin =~ ^[Yy]$ ]]; then
-    while true; do
-        read -s -p "Enter admin password (min 8 characters): " user_admin_password
-        echo ""
-        if [ ${#user_admin_password} -ge 8 ]; then
-            read -s -p "Confirm admin password: " confirm_password
+    read -p "Timezone [UTC]: " timezone
+    timezone=${timezone:-UTC}
+
+    echo ""
+    read -p "Do you want to use custom admin password? (y/n) [n]: " custom_admin
+    if [[ $custom_admin =~ ^[Yy]$ ]]; then
+        while true; do
+            read -s -p "Enter admin password (min 8 characters): " user_admin_password
             echo ""
-            if [ "$user_admin_password" = "$confirm_password" ]; then
-                ADMIN_PASSWORD="$user_admin_password"
-                break
+            if [ ${#user_admin_password} -ge 8 ]; then
+                read -s -p "Confirm admin password: " confirm_password
+                echo ""
+                if [ "$user_admin_password" = "$confirm_password" ]; then
+                    ADMIN_PASSWORD="$user_admin_password"
+                    break
+                else
+                    echo -e "${RED}Passwords do not match. Please try again.${NC}"
+                fi
             else
-                echo -e "${RED}Passwords do not match. Please try again.${NC}"
+                echo -e "${RED}Password must be at least 8 characters. Please try again.${NC}"
             fi
-        else
-            echo -e "${RED}Password must be at least 8 characters. Please try again.${NC}"
-        fi
-    done
+        done
+    fi
 fi
 
 # Copy .env.sample to .env and replace variables
