@@ -1,12 +1,33 @@
-# OpenDocMan
+# SecureDocFlow
 
-Free PHP Document Management System DMS
+A classification-driven, compliance-focused document management system (DMS) for PHP —
+built on top of [OpenDocMan](https://github.com/opendocman/opendocman), the free PHP DMS
+originally designed to comply with ISO 17025 and OIE standards for document management.
 
-OpenDocMan is a web based document management system (DMS) written in PHP designed to comply with ISO 17025 and OIE standard for document management. It features fine grained control of access to files, and automated install and upgrades.
+## Credit where it's due
 
-## About this fork
+**SecureDocFlow is a hard fork of [OpenDocMan](https://github.com/opendocman/opendocman)**,
+licensed GPL-2.0 (see [`LICENSE.txt`](LICENSE.txt)). OpenDocMan's original authors and
+contributors built the foundation this project extends: the core document repository,
+department/category structure, revision tracking, and review-process model. None of that
+is reimplemented here — it's inherited, and this fork stays GPL-2.0 in turn, as the license
+requires.
 
-This fork extends upstream OpenDocMan (PHP 8.2, MySQL 8) into a document management system built around **classification-driven access control** for a compliance-heavy environment — originally shaped by the document-control requirements of ISO/IEC 17029 (conformity assessment / accreditation), but the model generalizes to any org that needs "who can see this depends on how sensitive it is," enforced by the system rather than by policy alone.
+What changed is significant enough — a different access-control model, new workflow
+primitives, a security-hardening pass, and a modernized PHP/MySQL baseline — that this fork
+has its own name and its own identity as a portfolio piece, rather than presenting itself as
+upstream OpenDocMan. It is not affiliated with, endorsed by, or a replacement for the
+upstream project; anyone who wants the original should go to
+[github.com/opendocman/opendocman](https://github.com/opendocman/opendocman).
+
+## What SecureDocFlow adds
+
+This fork extends upstream OpenDocMan (upgraded to PHP 8.2, MySQL 8) into a document
+management system built around **classification-driven access control** for a
+compliance-heavy environment — originally shaped by the document-control requirements of
+ISO/IEC 17029 (conformity assessment / accreditation), but the model generalizes to any org
+that needs "who can see this depends on how sensitive it is," enforced by the system rather
+than by policy alone.
 
 **What's built on top of upstream:**
 
@@ -20,7 +41,7 @@ This fork extends upstream OpenDocMan (PHP 8.2, MySQL 8) into a document managem
 
 None of this requires the classification/workflow features to be used — a deployment that doesn't need them behaves like standard OpenDocMan.
 
-## Upstream features
+## Inherited from OpenDocMan
 
     * Upload files using web browser
     * Control access to files based on department or individual user permissions
