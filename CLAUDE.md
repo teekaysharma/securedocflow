@@ -151,6 +151,25 @@ two pairs of tests asserting pre-security-migration behavior (a `null`-vs-`[]` d
 - Every SQL query must include the table prefix explicitly:
   `{$GLOBALS['CONFIG']['db_prefix']}$this->tablename` (or the literal `odm_` prefix) — see "Things
   Claude gets wrong," this is a real, repeated source of bugs in this codebase.
+- **Schema has two homes with different jobs.** `application/installer/SchemaBuilder.php` is the
+  complete current schema and is what a *fresh install* uses (it does not replay migrations).
+  `application/installer/migrations/Version*.php` exist for *upgrading existing databases*. Any
+  schema change must go in both. Do not make a fresh install run the whole migration chain and do
+  not "fix" the bare table names in `Version001000`–`0012p3`: they correctly assume a pre-1.2.5.2
+  unprefixed database, `Version001252` is what adds the prefix, and none of it can run against
+  `SchemaBuilder`'s already-prefixed baseline. `ODM_DB_VERSION` (`application/version.php`) and
+  `SchemaBuilder::getVersion()` must be bumped together or every request redirects to `/installer`.
+  Known gap: no migration yet carries the Groups / Staged Approval / Access Request /
+  classification schema to an existing database (see `docs/superpowers/INDEX.md`).
+- **Docker verification harness.** Docker Engine is installed in the owner's WSL Ubuntu distro
+  (`wsl -d Ubuntu -u root`), not on Windows. Reproduce the install by cloning into WSL's own
+  filesystem and driving `/installer/setup-config` → `/installer?op=install` → login with curl
+  against a fresh volume (`docker compose down -v`). Two traps: Git Bash rewrites `/mnt/c/...`
+  arguments to `wsl.exe` (set `MSYS_NO_PATHCONV=1`), and each separate `wsl` call may find the VM
+  restarted with `/tmp` and containers gone, so do start, wait for HTTP, install and test inside
+  one script file run in one `wsl` call. Write scripts with the Write tool, not nested heredocs.
+- Access Request is only reachable by someone who can already *see* the document
+  (`checkUserPermission(..., VIEW_RIGHT)`); a test user with no rights is correctly refused.
 - File-serving code (anything building a filesystem path from a request parameter) must validate
   and cast to a clean type (usually `(int)`) *before* it's used in the path — never trust a
   request-derived string in a path just because a permission check elsewhere used a cast version
