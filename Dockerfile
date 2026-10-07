@@ -3,7 +3,14 @@ MAINTAINER Logical Arts, LLC <info@logicalarts.net>
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+# Double-quoted -e argument: this must expand $APACHE_DOCUMENT_ROOT to its real
+# value (/var/www/html/public) at build time, baking the literal path into the
+# config. A single-quoted argument (the previous version of this line) leaves
+# the literal, unexpanded text "${APACHE_DOCUMENT_ROOT}" in DocumentRoot --
+# Apache can't resolve that itself at startup, DocumentRoot ends up empty, and
+# apache2 refuses to start at all ("DocumentRoot takes one argument"). Verified
+# by building both variants in isolation.
+RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf
 
 # Install packages
 RUN apt-get update \
@@ -28,9 +35,14 @@ COPY . /var/www/html
 # Change file permissions
 RUN usermod -u 1000 www-data
 
-# Create and set proper ownership and permissions for OpenDocMan directories
+# Create and set proper ownership and permissions for application directories.
+# templates_c is Smarty's compiled-template cache -- correctly gitignored (it's
+# runtime-generated, not source), but that means a fresh clone has no such
+# directory for COPY . to bring in, so it must be created here explicitly like
+# the other two, not just chown'd/chmod'd as if it already existed.
 RUN mkdir -p /var/www/document_repository \
     && mkdir -p /var/www/html/application/configs/docker-configs \
+    && mkdir -p /var/www/html/application/templates_c \
     && chown -R www-data:www-data /var/www/html/application/templates_c \
     && chown -R www-data:www-data /var/www/html/application/configs \
     && chown -R www-data:www-data /var/www/document_repository \

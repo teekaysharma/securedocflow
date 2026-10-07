@@ -19,7 +19,12 @@
 
 
 const ODM_APP_VERSION = '2.1.0';
-const ODM_DB_VERSION = '1.4.0';
+// 1.4.1: adds the schema for this fork's own features (Groups, Staged
+// Approval workflow, Access Requests, document classification/versioning) --
+// found 2026-09-23 to have no CREATE TABLE/migration anywhere in the
+// installer at all, despite being fully wired up in application code. See
+// SchemaBuilder.php and migrations/Version001410.php.
+const ODM_DB_VERSION = '1.4.1';
 
 // version information
 $GLOBALS['CONFIG']['current_version'] = ODM_APP_VERSION;

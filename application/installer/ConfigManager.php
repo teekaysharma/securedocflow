@@ -81,6 +81,21 @@ class ConfigManager
             if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
             }
+            // config-sample.php's ABSPATH is dirname(__DIR__) -- correct only
+            // when config.php lives at application/configs/config.php, one
+            // level below application/. Written here to
+            // application/configs/docker-configs/config.php (two levels
+            // below), that same expression resolves to application/configs/
+            // instead of application/, silently breaking every ABSPATH-
+            // relative path (Smarty's template_dir among them -- confirmed:
+            // login/footer templates failed to resolve, login page rendered
+            // as a blank 200 OK). Adjust the depth for where this copy
+            // actually lives.
+            $content = str_replace(
+                "define('ABSPATH', dirname(__DIR__) . '/');",
+                "define('ABSPATH', dirname(__DIR__, 2) . '/');",
+                $content
+            );
         } else {
             $targetDir = $configsDir . '/';
         }
